@@ -12,7 +12,14 @@ export async function analyzeSymbol(symbol: string): Promise<AssetAnalysis> {
       const indicators = computeIndicators(closes);
       const ict = detectICT(candles);
       const { trend, score } = scoreTimeframe(indicators, ict);
-      return { timeframe: tf, indicators, trend, score, ict };
+      return {
+        timeframe: tf,
+        indicators,
+        trend,
+        score,
+        ict,
+        candles: candles.slice(-100), // last 100 for chart display
+      };
     })
   );
 

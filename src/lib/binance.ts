@@ -1,16 +1,11 @@
+import type { Candle } from "@/types";
+
 const BASE = "https://api.binance.com";
 
 export const SYMBOLS = ["SOLUSDT", "ADAUSDT", "XRPUSDT", "BNBUSDT", "SUIUSDT"];
 export const TIMEFRAMES = ["15m", "30m", "1h"] as const;
 
-export interface Candle {
-  time: number;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  volume: number;
-}
+export { type Candle };
 
 export function displaySymbol(raw: string) {
   return raw.replace("USDT", "/USDT");

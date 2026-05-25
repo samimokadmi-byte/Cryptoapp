@@ -1,4 +1,4 @@
-import type { Candle } from "./binance";
+import type { Candle } from "@/types";
 import type { FVG, OrderBlock, LiquidityLevel, ICTResult } from "@/types";
 
 function bodySize(c: Candle): number {

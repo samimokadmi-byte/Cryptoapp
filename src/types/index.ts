@@ -1,5 +1,14 @@
 export type TrendSignal = "BULLISH" | "BEARISH" | "NEUTRAL";
 
+export interface Candle {
+  time: number;  // ms timestamp
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
 export interface IndicatorSnapshot {
   rsi: number | null;
   macd: number | null;
@@ -42,6 +51,7 @@ export interface TimeframeAnalysis {
   trend: TrendSignal;
   score: number;
   ict: ICTResult;
+  candles: Candle[];
 }
 
 export interface AssetAnalysis {
