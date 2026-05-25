@@ -1,7 +1,10 @@
 import sys
 import os
 
-# Ensure `app/` is importable when running as a Vercel serverless function
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from app.main import app  # FastAPI ASGI app — Vercel detects it automatically
+from app.main import app
+from mangum import Mangum
+
+# Mangum bridges FastAPI (ASGI) with Vercel's Lambda-style invocation
+handler = Mangum(app, lifespan="off")
