@@ -1,7 +1,6 @@
 import { DashboardResponse, AssetAnalysis } from "@/types";
 
-// "" = same-origin on Vercel | "http://localhost:8000" = local FastAPI dev server
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
+const BASE = "";
 
 async function request<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE}${path}`, { cache: "no-store" });
@@ -15,5 +14,5 @@ export const api = {
   dashboard: (): Promise<DashboardResponse> => request("/api/dashboard"),
   asset: (symbol: string): Promise<AssetAnalysis> =>
     request(`/api/asset/${encodeURIComponent(symbol)}`),
-  health: () => request<{ status: string; binance_connected: boolean }>("/health"),
+  health: () => request<{ status: string; binance_connected: boolean }>("/api/health"),
 };
