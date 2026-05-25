@@ -1,5 +1,4 @@
 fastapi==0.111.0
-mangum==0.17.0
 python-binance==1.0.19
 pandas==2.2.2
 pandas-ta==0.3.14b0
