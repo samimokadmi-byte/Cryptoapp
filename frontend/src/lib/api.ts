@@ -1,6 +1,7 @@
 import { DashboardResponse, AssetAnalysis } from "@/types";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+// "" = same-origin on Vercel | "http://localhost:8000" = local FastAPI dev server
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 async function request<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE}${path}`, { cache: "no-store" });
