@@ -1,13 +1,16 @@
 "use client";
 import { formatDistanceToNow } from "date-fns";
+import type { NotifPermission } from "@/hooks/useNotifications";
 
 interface HeaderProps {
   lastFetch: Date | null;
   loading: boolean;
   onRefresh: () => void;
+  notifPermission: NotifPermission;
+  onEnableNotifications: () => void;
 }
 
-export default function Header({ lastFetch, loading, onRefresh }: HeaderProps) {
+export default function Header({ lastFetch, loading, onRefresh, notifPermission, onEnableNotifications }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-surface-1/90 backdrop-blur-sm">
       <div className="mx-auto max-w-screen-2xl px-6 py-4 flex items-center justify-between">
@@ -26,12 +29,44 @@ export default function Header({ lastFetch, loading, onRefresh }: HeaderProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {lastFetch && (
             <span className="text-xs text-slate-500 font-mono hidden sm:block">
               Updated {formatDistanceToNow(lastFetch, { addSuffix: true })}
             </span>
           )}
+
+          {/* Notification bell */}
+          {notifPermission !== "unsupported" && (
+            <button
+              onClick={onEnableNotifications}
+              disabled={notifPermission === "denied"}
+              title={
+                notifPermission === "granted"
+                  ? "Notifications actives"
+                  : notifPermission === "denied"
+                  ? "Notifications bloquées par le navigateur"
+                  : "Activer les notifications"
+              }
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs font-mono
+                transition-all ${
+                  notifPermission === "granted"
+                    ? "border-accent-green/40 text-accent-green bg-accent-green/10 cursor-default"
+                    : notifPermission === "denied"
+                    ? "border-border text-slate-600 cursor-not-allowed opacity-50"
+                    : "border-border text-slate-400 bg-surface-2 hover:border-accent-amber/50 hover:text-accent-amber"
+                }`}
+            >
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              <span className="hidden sm:inline">
+                {notifPermission === "granted" ? "Notifs ON" : notifPermission === "denied" ? "Bloqué" : "Notifs"}
+              </span>
+            </button>
+          )}
+
           <button
             onClick={onRefresh}
             disabled={loading}

@@ -4,13 +4,20 @@ import Header from "@/components/Header";
 import AssetCard from "@/components/AssetCard";
 import AlertPanel from "@/components/AlertPanel";
 import StatsSummary from "@/components/StatsSummary";
+import EntryPointsPanel from "@/components/EntryPointsPanel";
 
 export default function Dashboard() {
-  const { data, loading, error, lastFetch, refetch } = useMarketData();
+  const { data, loading, error, lastFetch, refetch, entryPoints, notifPermission, requestNotifPermission } = useMarketData();
 
   return (
     <div className="min-h-screen flex flex-col bg-surface">
-      <Header lastFetch={lastFetch} loading={loading} onRefresh={refetch} />
+      <Header
+        lastFetch={lastFetch}
+        loading={loading}
+        onRefresh={refetch}
+        notifPermission={notifPermission}
+        onEnableNotifications={requestNotifPermission}
+      />
 
       <main className="flex-1 mx-auto w-full max-w-screen-2xl px-4 sm:px-6 py-8 space-y-8">
         {/* Error banner */}
@@ -35,6 +42,18 @@ export default function Dashboard() {
 
         {data && (
           <>
+            {/* Section — Entry Points */}
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="h-px flex-1 bg-border" />
+                <h2 className="font-mono text-xs font-semibold tracking-widest text-accent-amber uppercase px-2">
+                  ◈ Points d&apos;entrée ICT
+                </h2>
+                <span className="h-px flex-1 bg-border" />
+              </div>
+              <EntryPointsPanel entries={entryPoints} />
+            </section>
+
             {/* Section — Confluence Alerts */}
             <section>
               <div className="flex items-center gap-2 mb-3">

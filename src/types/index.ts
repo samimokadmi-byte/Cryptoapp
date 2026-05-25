@@ -58,3 +58,13 @@ export interface DashboardResponse {
   confluences: AssetAnalysis[];
   generated_at: string;
 }
+
+export interface EntryPoint {
+  symbol: string;
+  timeframe: string;
+  direction: "long" | "short";
+  entryZone: { low: number; high: number };
+  stopLoss: number;
+  reasons: string[];
+  confidence: "high" | "medium";
+}
