@@ -1,45 +1,49 @@
 import pandas as pd
-import pandas_ta as ta
 from app.models.schemas import IndicatorSnapshot
 
 
+def _ema(series: pd.Series, period: int) -> pd.Series:
+    return series.ewm(span=period, adjust=False, min_periods=period).mean()
+
+
+def _rsi(series: pd.Series, period: int = 14) -> pd.Series:
+    delta = series.diff()
+    gain = delta.clip(lower=0)
+    loss = (-delta).clip(lower=0)
+    avg_gain = gain.ewm(com=period - 1, adjust=False, min_periods=period).mean()
+    avg_loss = loss.ewm(com=period - 1, adjust=False, min_periods=period).mean()
+    rs = avg_gain / avg_loss
+    return 100 - (100 / (1 + rs))
+
+
+def _macd(
+    series: pd.Series, fast: int = 12, slow: int = 26, signal: int = 9
+) -> tuple[pd.Series, pd.Series, pd.Series]:
+    ema_fast = _ema(series, fast)
+    ema_slow = _ema(series, slow)
+    macd_line = ema_fast - ema_slow
+    signal_line = _ema(macd_line, signal)
+    histogram = macd_line - signal_line
+    return macd_line, signal_line, histogram
+
+
 def compute_indicators(df: pd.DataFrame) -> IndicatorSnapshot:
-    """
-    Compute RSI, MACD, EMA-50, EMA-200 on a OHLCV DataFrame.
-    Returns the most-recent bar values as an IndicatorSnapshot.
-    """
     close = df["close"]
 
-    rsi_series = ta.rsi(close, length=14)
-    macd_df = ta.macd(close, fast=12, slow=26, signal=9)
-    ema50 = ta.ema(close, length=50)
-    ema200 = ta.ema(close, length=200)
+    rsi = _rsi(close)
+    macd_line, macd_signal, macd_hist = _macd(close)
+    ema50 = _ema(close, 50)
+    ema200 = _ema(close, 200)
 
-    def last(s: pd.Series | None):
-        if s is None or s.empty:
-            return None
+    def last(s: pd.Series):
         val = s.iloc[-1]
         return None if pd.isna(val) else round(float(val), 6)
 
-    macd_val = macd_signal = macd_hist = None
-    if macd_df is not None and not macd_df.empty:
-        # pandas_ta column names: MACD_12_26_9, MACDs_12_26_9, MACDh_12_26_9
-        cols = macd_df.columns.tolist()
-        macd_col = next((c for c in cols if c.startswith("MACD_")), None)
-        sig_col = next((c for c in cols if c.startswith("MACDs_")), None)
-        hist_col = next((c for c in cols if c.startswith("MACDh_")), None)
-        if macd_col:
-            macd_val = last(macd_df[macd_col])
-        if sig_col:
-            macd_signal = last(macd_df[sig_col])
-        if hist_col:
-            macd_hist = last(macd_df[hist_col])
-
     return IndicatorSnapshot(
-        rsi=last(rsi_series),
-        macd=macd_val,
-        macd_signal=macd_signal,
-        macd_hist=macd_hist,
+        rsi=last(rsi),
+        macd=last(macd_line),
+        macd_signal=last(macd_signal),
+        macd_hist=last(macd_hist),
         ema_50=last(ema50),
         ema_200=last(ema200),
         close=last(close),
