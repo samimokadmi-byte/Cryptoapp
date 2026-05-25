@@ -1,58 +1,39 @@
 import logging
-from binance.client import Client
-from binance.exceptions import BinanceAPIException
+import httpx
 import pandas as pd
-from app.config import get_settings
 
 logger = logging.getLogger(__name__)
 
+BINANCE_BASE = "https://api.binance.com"
 SYMBOLS = ["SOLUSDT", "ADAUSDT", "XRPUSDT", "BNBUSDT", "SUIUSDT"]
-TIMEFRAMES = {
-    "15m": Client.KLINE_INTERVAL_15MINUTE,
-    "30m": Client.KLINE_INTERVAL_30MINUTE,
-    "1h": Client.KLINE_INTERVAL_1HOUR,
-}
-KLINE_LIMIT = 250  # enough for EMA 200
+TIMEFRAMES = {"15m": "15m", "30m": "30m", "1h": "1h"}
+KLINE_LIMIT = 250
 
-
-def _build_client() -> Client:
-    settings = get_settings()
-    return Client(
-        api_key=settings.binance_api_key or None,
-        api_secret=settings.binance_api_secret or None,
-        tld="com",
-    )
-
-
-_client: Client | None = None
-
-
-def get_client() -> Client:
-    global _client
-    if _client is None:
-        _client = _build_client()
-    return _client
+_COLUMNS = [
+    "open_time", "open", "high", "low", "close", "volume",
+    "close_time", "quote_volume", "trades",
+    "taker_buy_base", "taker_buy_quote", "ignore",
+]
 
 
 def check_connection() -> bool:
     try:
-        get_client().ping()
-        return True
+        with httpx.Client(timeout=5) as client:
+            return client.get(f"{BINANCE_BASE}/api/v3/ping").status_code == 200
     except Exception as exc:
         logger.warning("Binance ping failed: %s", exc)
         return False
 
 
 def fetch_klines(symbol: str, interval: str, limit: int = KLINE_LIMIT) -> pd.DataFrame:
-    """Return OHLCV DataFrame for a symbol/interval."""
-    client = get_client()
-    raw = client.get_klines(symbol=symbol, interval=interval, limit=limit)
-    columns = [
-        "open_time", "open", "high", "low", "close", "volume",
-        "close_time", "quote_volume", "trades",
-        "taker_buy_base", "taker_buy_quote", "ignore",
-    ]
-    df = pd.DataFrame(raw, columns=columns)
+    with httpx.Client(timeout=30) as client:
+        resp = client.get(
+            f"{BINANCE_BASE}/api/v3/klines",
+            params={"symbol": symbol, "interval": interval, "limit": limit},
+        )
+        resp.raise_for_status()
+
+    df = pd.DataFrame(resp.json(), columns=_COLUMNS)
     for col in ["open", "high", "low", "close", "volume"]:
         df[col] = df[col].astype(float)
     df["open_time"] = pd.to_datetime(df["open_time"], unit="ms")
