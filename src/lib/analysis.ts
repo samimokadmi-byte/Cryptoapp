@@ -2,6 +2,7 @@ import { fetchCandles, SYMBOLS, TIMEFRAMES, displaySymbol } from "./binance";
 import { computeIndicators } from "./indicators";
 import { scoreTimeframe, aggregateTrends } from "./scoring";
 import { detectICT } from "./ict";
+import { detectAccumulation } from "./accumulation";
 import type { AssetAnalysis, TimeframeAnalysis } from "@/types";
 
 export async function analyzeSymbol(symbol: string): Promise<AssetAnalysis> {
@@ -11,6 +12,7 @@ export async function analyzeSymbol(symbol: string): Promise<AssetAnalysis> {
       const closes = candles.map(c => c.close);
       const indicators = computeIndicators(closes);
       const ict = detectICT(candles);
+      const accumulation = detectAccumulation(candles);
       const { trend, score } = scoreTimeframe(indicators, ict);
       return {
         timeframe: tf,
@@ -18,7 +20,8 @@ export async function analyzeSymbol(symbol: string): Promise<AssetAnalysis> {
         trend,
         score,
         ict,
-        candles: candles.slice(-100), // last 100 for chart display
+        candles: candles.slice(-100),
+        accumulation,
       };
     })
   );
@@ -37,5 +40,8 @@ export async function analyzeSymbol(symbol: string): Promise<AssetAnalysis> {
 }
 
 export async function analyzeAll(): Promise<AssetAnalysis[]> {
-  return Promise.all(SYMBOLS.map(analyzeSymbol));
+  const results = await Promise.allSettled(SYMBOLS.map(analyzeSymbol));
+  return results
+    .filter((r): r is PromiseFulfilledResult<AssetAnalysis> => r.status === "fulfilled")
+    .map(r => r.value);
 }

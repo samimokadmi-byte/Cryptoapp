@@ -1,7 +1,7 @@
 export type TrendSignal = "BULLISH" | "BEARISH" | "NEUTRAL";
 
 export interface Candle {
-  time: number;  // ms timestamp
+  time: number; // ms timestamp
   open: number;
   high: number;
   low: number;
@@ -45,6 +45,20 @@ export interface ICTResult {
   recentBSLSweep: boolean;
 }
 
+export interface AccumulationZone {
+  type: "accumulation" | "distribution" | "consolidation";
+  rangeLow: number;
+  rangeHigh: number;
+  rangePercent: number;
+  strength: "strong" | "weak";
+}
+
+export interface SentimentResult {
+  score: number; // 0–100
+  label: string;
+  source: "fear_greed_api" | "computed";
+}
+
 export interface TimeframeAnalysis {
   timeframe: string;
   indicators: IndicatorSnapshot;
@@ -52,6 +66,7 @@ export interface TimeframeAnalysis {
   score: number;
   ict: ICTResult;
   candles: Candle[];
+  accumulation: AccumulationZone | null;
 }
 
 export interface AssetAnalysis {

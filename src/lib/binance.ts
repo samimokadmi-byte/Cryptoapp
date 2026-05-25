@@ -2,13 +2,16 @@ import type { Candle } from "@/types";
 
 const BASE = "https://api.binance.com";
 
-export const SYMBOLS = ["SOLUSDT", "ADAUSDT", "XRPUSDT", "BNBUSDT", "SUIUSDT"];
-export const TIMEFRAMES = ["15m", "30m", "1h"] as const;
+export const SYMBOLS = [
+  "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT",
+  "XRPUSDT", "ADAUSDT", "SUIUSDT", "XAUTUSDT",
+];
+export const TIMEFRAMES = ["5m", "15m", "30m", "1h", "4h", "1d"] as const;
 
 export { type Candle };
 
 export function displaySymbol(raw: string) {
-  return raw.replace("USDT", "/USDT");
+  return raw.replace(/USDT$/, "/USDT");
 }
 
 export async function fetchCandles(

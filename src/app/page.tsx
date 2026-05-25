@@ -5,9 +5,10 @@ import AssetCard from "@/components/AssetCard";
 import AlertPanel from "@/components/AlertPanel";
 import StatsSummary from "@/components/StatsSummary";
 import EntryPointsPanel from "@/components/EntryPointsPanel";
+import SentimentGauge from "@/components/SentimentGauge";
 
 export default function Dashboard() {
-  const { data, loading, error, lastFetch, refetch, entryPoints, notifPermission, requestNotifPermission } = useMarketData();
+  const { data, loading, error, lastFetch, refetch, entryPoints, sentiment, notifPermission, requestNotifPermission } = useMarketData();
 
   return (
     <div className="min-h-screen flex flex-col bg-surface">
@@ -20,7 +21,6 @@ export default function Dashboard() {
       />
 
       <main className="flex-1 mx-auto w-full max-w-screen-2xl px-4 sm:px-6 py-8 space-y-8">
-        {/* Error banner */}
         {error && (
           <div className="rounded-lg border border-accent-red/40 bg-accent-red/10 px-4 py-3 flex items-center gap-3">
             <svg className="h-4 w-4 text-accent-red flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -31,30 +31,47 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Loading skeleton */}
         {loading && !data && (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="rounded-xl border border-border bg-surface-1 h-72 animate-pulse" />
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="rounded-xl border border-border bg-surface-1 h-80 animate-pulse" />
             ))}
           </div>
         )}
 
         {data && (
           <>
-            {/* Section — Entry Points */}
+            {/* Sentiment + Entry Points — top row */}
             <section>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="h-px flex-1 bg-border" />
-                <h2 className="font-mono text-xs font-semibold tracking-widest text-accent-amber uppercase px-2">
-                  ◈ Points d&apos;entrée ICT
-                </h2>
-                <span className="h-px flex-1 bg-border" />
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="h-px flex-1 bg-border" />
+                    <h2 className="font-mono text-xs font-semibold tracking-widest text-accent-amber uppercase px-2">
+                      ◈ Sentiment
+                    </h2>
+                    <span className="h-px flex-1 bg-border" />
+                  </div>
+                  {sentiment ? (
+                    <SentimentGauge sentiment={sentiment} />
+                  ) : (
+                    <div className="rounded-xl border border-border bg-surface-1 h-28 animate-pulse" />
+                  )}
+                </div>
+                <div className="lg:col-span-2">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="h-px flex-1 bg-border" />
+                    <h2 className="font-mono text-xs font-semibold tracking-widest text-accent-amber uppercase px-2">
+                      ◈ Points d&apos;entrée ICT
+                    </h2>
+                    <span className="h-px flex-1 bg-border" />
+                  </div>
+                  <EntryPointsPanel entries={entryPoints} />
+                </div>
               </div>
-              <EntryPointsPanel entries={entryPoints} />
             </section>
 
-            {/* Section — Confluence Alerts */}
+            {/* Confluence Alerts */}
             <section>
               <div className="flex items-center gap-2 mb-3">
                 <span className="h-px flex-1 bg-border" />
@@ -66,7 +83,7 @@ export default function Dashboard() {
               <AlertPanel confluences={data.confluences} />
             </section>
 
-            {/* Section — Market Overview */}
+            {/* Market Overview */}
             <section>
               <div className="flex items-center gap-2 mb-4">
                 <span className="h-px flex-1 bg-border" />
@@ -78,27 +95,26 @@ export default function Dashboard() {
               <StatsSummary assets={data.assets} />
             </section>
 
-            {/* Section — Asset Grid */}
+            {/* Asset Grid */}
             <section>
               <div className="flex items-center gap-2 mb-4">
                 <span className="h-px flex-1 bg-border" />
                 <h2 className="font-mono text-xs font-semibold tracking-widest text-slate-400 uppercase px-2">
-                  ◈ Asset Analysis · 15m / 30m / 1h
+                  ◈ Asset Analysis · 5m / 15m / 30m / 1h / 4h / 1D
                 </h2>
                 <span className="h-px flex-1 bg-border" />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                 {data.assets.map((asset) => (
                   <AssetCard key={asset.symbol} asset={asset} />
                 ))}
               </div>
             </section>
 
-            {/* Footer */}
             <footer className="pt-4 border-t border-border text-center font-mono text-xs text-slate-600">
-              Data via Binance API · Generated at{" "}
-              {new Date(data.generated_at).toLocaleTimeString("en-US", { hour12: false })} UTC ·
-              Auto-refresh every 30s
+              BTC · ETH · SOL · BNB · XRP · ADA · SUI · XAUT via Binance API ·
+              Généré à {new Date(data.generated_at).toLocaleTimeString("fr-FR")} ·
+              Refresh auto 30s
             </footer>
           </>
         )}

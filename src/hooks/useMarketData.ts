@@ -1,8 +1,9 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { DashboardResponse, EntryPoint } from "@/types";
+import { DashboardResponse, EntryPoint, SentimentResult } from "@/types";
 import { analyzeAll } from "@/lib/analysis";
 import { detectEntryPoints } from "@/lib/entryPoints";
+import { fetchFearGreed, computeSentiment } from "@/lib/sentiment";
 import { useNotifications } from "./useNotifications";
 
 const REFRESH_MS = 30_000;
@@ -34,21 +35,18 @@ function signalToNotification(key: string): { title: string; body: string } | nu
   if (parts.length === 2) {
     const [sym, type] = parts;
     const trend = type.replace("CONFLUENCE_", "");
-    return {
-      title: `${sym} — Confluence ${trend}`,
-      body: "Les 3 timeframes sont alignés — signal fort",
-    };
+    return { title: `${sym} — Confluence ${trend}`, body: "Les TFs sont alignés — signal fort" };
   }
   if (parts.length === 3) {
     const [sym, tf, type] = parts;
     if (type === "SSL_SWEPT")
-      return { title: `${sym} ${tf} — Retournement haussier`, body: "SSL swept — stop hunt baissier, retournement potentiel" };
+      return { title: `${sym} ${tf} — Retournement haussier`, body: "SSL swept — stop hunt baissier" };
     if (type === "BSL_SWEPT")
-      return { title: `${sym} ${tf} — Retournement baissier`, body: "BSL swept — stop hunt haussier, retournement potentiel" };
+      return { title: `${sym} ${tf} — Retournement baissier`, body: "BSL swept — stop hunt haussier" };
     if (type === "IN_OB_BULLISH")
-      return { title: `${sym} ${tf} — Zone OB haussier`, body: "Prix dans un Order Block haussier — entrée LONG potentielle" };
+      return { title: `${sym} ${tf} — Zone OB haussier`, body: "Prix dans un Order Block — LONG potentiel" };
     if (type === "IN_OB_BEARISH")
-      return { title: `${sym} ${tf} — Zone OB baissier`, body: "Prix dans un Order Block baissier — entrée SHORT potentielle" };
+      return { title: `${sym} ${tf} — Zone OB baissier`, body: "Prix dans un Order Block — SHORT potentiel" };
   }
   return null;
 }
@@ -59,6 +57,7 @@ export function useMarketData() {
   const [error, setError] = useState<string | null>(null);
   const [lastFetch, setLastFetch] = useState<Date | null>(null);
   const [entryPoints, setEntryPoints] = useState<EntryPoint[]>([]);
+  const [sentiment, setSentiment] = useState<SentimentResult | null>(null);
 
   const { permission: notifPermission, requestPermission: requestNotifPermission, notify } = useNotifications();
   const prevSignals = useRef<Set<string>>(new Set());
@@ -66,10 +65,13 @@ export function useMarketData() {
 
   const fetchData = useCallback(async () => {
     try {
-      const assets = await analyzeAll();
+      const [assets, fgResult] = await Promise.all([
+        analyzeAll(),
+        fetchFearGreed().catch(() => null),
+      ]);
+
       const confluences = assets.filter(a => a.confluence);
 
-      // Detect reversal signals and notify on new ones
       const signals = collectSignals(assets);
       if (!isFirstFetch.current) {
         Array.from(signals).forEach(key => {
@@ -82,6 +84,7 @@ export function useMarketData() {
       isFirstFetch.current = false;
       prevSignals.current = signals;
 
+      setSentiment(fgResult ?? computeSentiment(assets));
       setEntryPoints(detectEntryPoints(assets));
       setData({ assets, confluences, generated_at: new Date().toISOString() });
       setError(null);
@@ -99,5 +102,5 @@ export function useMarketData() {
     return () => clearInterval(id);
   }, [fetchData]);
 
-  return { data, loading, error, lastFetch, refetch: fetchData, entryPoints, notifPermission, requestNotifPermission };
+  return { data, loading, error, lastFetch, refetch: fetchData, entryPoints, sentiment, notifPermission, requestNotifPermission };
 }
