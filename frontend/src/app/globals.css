@@ -1,0 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-surface text-slate-200 font-sans antialiased;
+  }
+  * {
+    @apply border-border;
+  }
+}
+
+@layer utilities {
+  .text-bullish  { @apply text-accent-green; }
+  .text-bearish  { @apply text-accent-red; }
+  .text-neutral  { @apply text-slate-400; }
+
+  .bg-bullish    { @apply bg-accent-green/10; }
+  .bg-bearish    { @apply bg-accent-red/10; }
+  .bg-neutral    { @apply bg-slate-700/30; }
+
+  .border-bullish { @apply border-accent-green/40; }
+  .border-bearish { @apply border-accent-red/40; }
+  .border-neutral { @apply border-slate-600/40; }
+
+  .glow-cyan     { box-shadow: 0 0 20px rgba(0, 212, 255, 0.15); }
+  .glow-green    { box-shadow: 0 0 20px rgba(0, 230, 118, 0.15); }
+  .glow-red      { box-shadow: 0 0 20px rgba(255, 23, 68, 0.15); }
+}
