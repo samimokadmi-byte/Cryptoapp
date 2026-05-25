@@ -1,15 +1,18 @@
-import { fetchCloses, SYMBOLS, TIMEFRAMES, displaySymbol } from "./binance";
+import { fetchCandles, SYMBOLS, TIMEFRAMES, displaySymbol } from "./binance";
 import { computeIndicators } from "./indicators";
 import { scoreTimeframe, aggregateTrends } from "./scoring";
+import { detectICT } from "./ict";
 import type { AssetAnalysis, TimeframeAnalysis } from "@/types";
 
 export async function analyzeSymbol(symbol: string): Promise<AssetAnalysis> {
   const tfResults = await Promise.all(
     TIMEFRAMES.map(async (tf): Promise<TimeframeAnalysis> => {
-      const closes = await fetchCloses(symbol, tf);
+      const candles = await fetchCandles(symbol, tf);
+      const closes = candles.map(c => c.close);
       const indicators = computeIndicators(closes);
-      const { trend, score } = scoreTimeframe(indicators);
-      return { timeframe: tf, indicators, trend, score };
+      const ict = detectICT(candles);
+      const { trend, score } = scoreTimeframe(indicators, ict);
+      return { timeframe: tf, indicators, trend, score, ict };
     })
   );
 

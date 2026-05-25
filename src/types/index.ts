@@ -10,11 +10,38 @@ export interface IndicatorSnapshot {
   close: number | null;
 }
 
+export interface FVG {
+  type: "bullish" | "bearish";
+  high: number;
+  low: number;
+}
+
+export interface OrderBlock {
+  type: "bullish" | "bearish";
+  high: number;
+  low: number;
+}
+
+export interface LiquidityLevel {
+  type: "bsl" | "ssl";
+  price: number;
+  swept: boolean;
+}
+
+export interface ICTResult {
+  fvgs: FVG[];
+  orderBlocks: OrderBlock[];
+  liquidity: LiquidityLevel[];
+  recentSSLSweep: boolean;
+  recentBSLSweep: boolean;
+}
+
 export interface TimeframeAnalysis {
   timeframe: string;
   indicators: IndicatorSnapshot;
   trend: TrendSignal;
   score: number;
+  ict: ICTResult;
 }
 
 export interface AssetAnalysis {

@@ -2,6 +2,7 @@ import { TimeframeAnalysis } from "@/types";
 import TrendBadge from "./TrendBadge";
 import ScoreBar from "./ScoreBar";
 import IndicatorRow from "./IndicatorRow";
+import ICTPanel from "./ICTPanel";
 import clsx from "clsx";
 
 interface TimeframeTableProps {
@@ -36,6 +37,7 @@ export default function TimeframeTable({ timeframes }: TimeframeTableProps) {
           <div className="mt-2">
             <IndicatorRow indicators={tf.indicators} />
           </div>
+          <ICTPanel ict={tf.ict} close={tf.indicators.close} />
         </div>
       ))}
     </div>
