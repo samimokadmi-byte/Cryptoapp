@@ -21,8 +21,22 @@ export function useNotifications() {
   }, []);
 
   const notify = useCallback((title: string, body: string) => {
-    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    if (Notification.permission !== "granted") return;
+
+    // Desktop: direct constructor
+    try {
       new Notification(title, { body });
+      return;
+    } catch {
+      // Mobile Chrome requires Service Worker — fall through
+    }
+
+    // Mobile fallback: service worker
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.ready
+        .then(reg => reg.showNotification(title, { body }))
+        .catch(() => { /* SW not available, skip silently */ });
     }
   }, []);
 
