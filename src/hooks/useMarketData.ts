@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { DashboardResponse } from "@/types";
-import { api } from "@/lib/api";
+import { analyzeAll } from "@/lib/analysis";
 
 const REFRESH_MS = 30_000;
 
@@ -13,12 +13,13 @@ export function useMarketData() {
 
   const fetchData = useCallback(async () => {
     try {
-      const result = await api.dashboard();
-      setData(result);
+      const assets = await analyzeAll();
+      const confluences = assets.filter(a => a.confluence);
+      setData({ assets, confluences, generated_at: new Date().toISOString() });
       setError(null);
       setLastFetch(new Date());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError(err instanceof Error ? err.message : "Binance fetch error");
     } finally {
       setLoading(false);
     }
